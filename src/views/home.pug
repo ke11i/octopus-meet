@@ -8,8 +8,13 @@ html(lang="en")
     title Octopus Meet
   body
     header
-      h1 It works!
+      h1 Octopus Meet
     main
-      h2 welcome to Octopus Meet
-    button button
+      ul
+      form#nickname
+        input(type="text", placeholder="choose a nickname", required)
+        button Save
+      form#message
+        input(type="text", placeholder="write a msg", required)
+        button Send
     script(src="/public/js/app.js")

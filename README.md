@@ -34,7 +34,9 @@ app.get('/*', (res, req) => res.render("home"));
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
-app.listen(3000, handleListen);
+const server = http.createServer(app);  // express로 http 서버를 생성
+app.listen(3000, handleListen); // 이제 3000번 포트로 http 프로토콜 사용 가능
+
 ```
 <br/>
 

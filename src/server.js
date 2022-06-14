@@ -8,26 +8,30 @@ app.set('view engine', 'pug');
 app.set('views',__dirname + '/views');
 app.use('/public', express.static(__dirname+ '/public'));
 app.get('/', (req, res) => res.render("home"));
-app.get('/*', (res, req) => res.render("home"));
-
+app.get('/*', (req, res) => res.render("home"));
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
 const server = http.createServer(app);  // express로 http 서버를 생성
 const wss = new WebSocket.Server({server}); // websocket서버를 생성하는데 server를 전달할 수 있음
 
+const sockets = [];
+
 wss.on("connection", (socket) => { 
   console.log("Connected to Browser");
+  sockets.push(socket);
+  socket["nickname"] = "annanimus";
 
-  socket.on("close", ()=>{
-    console.log("Disconnectied from the Browser")
-  })
+  socket.on("message", (message) => {
+    const data = JSON.parse(message);
 
-  socket.on("message", (message, isBinary) => {
-    message = isBinary ? message:message.toString()
-    console.log(message);
+    switch(data.type){
+      case "message":
+        sockets.forEach(s => s.send(`${socket.nickname}: ${data.payload}`));
+      case "nickname":
+        socket["nickname"] = data.payload;
+    }
   })
-  socket.send("hello!!!");
 });
 
 
