@@ -18,6 +18,8 @@ Zoom clone using WebRTC and Websockets
 ```javascript
 /* src/server.js 파일 */
 import express from "express";
+import http from "http";
+import WebSocket from "ws";
 
 const app = express();
 
@@ -31,17 +33,19 @@ app.use('/public', express.static(__dirname + '/public'));
 app.get('/', (req, res) => res.render("home"));
 app.get('/*', (res, req) => res.render("home"));
 
-
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
 const server = http.createServer(app);  // express로 http 서버를 생성
-app.listen(3000, handleListen); // 이제 3000번 포트로 http 프로토콜 사용 가능
+const wss = new WebSocket.Server({server}); // websocket서버를 생성하는데 server를 전달할 수 있음
+
+server.listen(3000, handleListen);  // 이제 3000번 포트로 http, ws 프로토콜 모두 사용 가능
 
 ```
 <br/>
 
 ## HTTP vs WebSocket
 > HTTP, WebSocket 모두 propocol이다.
+
 ![http vs websocket](https://1.bp.blogspot.com/-iGGehbQ-j0Y/XnzF5N2gF8I/AAAAAAAAMVs/olfPCU8mxE4kNMMa7qdv70STtn3owJ4zACLcBGAsYHQ/w680/ws01.png)
 
 `http`: user가 request를 보내고 server는 response를 보낸다. 중요한점은 **http는 stateless하다. 즉, 서버는 user가 누구인지 기억하지 못한다.** response를 보낸 뒤에 서버는 해당 요청을 종료처리(유저 기억 안함)한 뒤 다른 request를 기다리는 상태가 된다. 
@@ -49,9 +53,30 @@ app.listen(3000, handleListen); // 이제 3000번 포트로 http 프로토콜 �
 - request는 항상 유저가 요청한다. 즉, 어느날 서버가 갑자기 유저에게 말을 건다거나 하는 일은 생길 수 없다.
 - 1 request => 1 response
 
-`webSocket`: user가 request를 보내면 서버가 받거나 거절한다. 서버가 수락하면 유저와 서버간 연결이 성립된다. w**ebSocket은 bi-directional(양방향)이다. 즉, 연결이 되어 있기 때문에 서버는 유저가 누구인지 판별이 가능해진다.**
+`webSocket`: user가 request를 보내면 서버가 받거나 거절한다. 서버가 수락하면 유저와 서버간 연결이 성립된다. **webSocket은 bi-directional(양방향)이다. 즉, 연결이 되어 있기 때문에 서버는 유저가 누구인지 판별이 가능해진다.**
 - webSocket을 사용할 때, 서버는 유저가 누구인지 알 수 있으므로 어느때나 사용자의 request를 기다릴필요 없이 먼저 말을 걸 수 있다.
 - n request <=> m respnse
 - 당연하게도 서버와 서버 간의 통시에도 사용 가능한 프로토콜이다.
 
+<br />
 
+## WebSocket vs SocketIO
+> [socket.io](https://socket.io)
+
+`SocketIO`: 일종의 프레임워크로 WebSocket을 이용하여 실시간, 양방향, event 기반 통신을 지원한다.
+- socketIO는 일반적으로 WebSocket을 이용하지만, WebSocket이 사용불가능한 환경이라면 자체적으로 다른 방법(HTTP long polling 등)을 지원한다.
+
+```javascript
+// [frontend]
+socket.emit("event_name",a,b,c,fn);
+```
+```javascript
+// [backend]
+wsServer.on("connection", (socket)=> {
+  // socketIO를 이용하면 콜백 함수도 매게변수로 보낼 수 있다.(단, 가장 마지막 인자!)
+  socket.on("enter_room", (a,b,c,fn) => {
+    console.log(a,b,c);
+    fn();
+  });
+})
+```
